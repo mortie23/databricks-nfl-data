@@ -12,19 +12,19 @@
 # COMMAND ----------
 
 # A function to create a delta table
-def deltaFromFile(file_location: str, file_type: str = "csv", infer_schema: str = "true", first_row_is_header: str = "true"):
+def deltaFromFile(adls_path: str, file_path: str, file_name: str, file_type: str = "csv", infer_schema: str = "true", first_row_is_header: str = "true"):
   '''
     Create a delta table and register in Hive metastore from a CSV
     Args:
-      file_location: the full path location within ADLS
+      file_path: the full path location within ADLS
       file_type: the extension (type) of the file
       infer_schema: boolean string if you want to infer the schema
       first_row_is_header: boolean string if the first row contains column names
     Returns:
       None
   '''
-  # file_name 
-  file_name = file_location.split('/')[-1].split('.')[0]
+  # table name 
+  table_name = file_name.split('.')[0]
   # delimiter option
   delimiter = "," if file_type == "csv" else " "
   # The applied options are for CSV files. For other file types, these will be ignored.
@@ -32,13 +32,16 @@ def deltaFromFile(file_location: str, file_type: str = "csv", infer_schema: str 
     .option("inferSchema", infer_schema) \
     .option("header", first_row_is_header) \
     .option("sep", delimiter) \
-    .load(file_location)
+    .load(file_path)
   # create a temp view
   df.createOrReplaceTempView("temp")
   # write the parquet delta table
   df.write.mode("overwrite") \
     .format("delta") \
-    .saveAsTable(f"nfl.{file_name}")
+    .save(f"{adls_path}/{table_name}") 
+  # register table
+  spark.sql(f"DROP TABLE IF EXISTS nfl.{table_name}")
+  spark.sql(f"CREATE TABLE nfl.{table_name} USING DELTA LOCATION '{adls_path}/{table_name}'")
 
 # COMMAND ----------
 
@@ -53,8 +56,10 @@ def deltaForAllFiles(adls_path: str = 'abfss://nfldata@nfl.dfs.core.windows.net/
   '''
   all_files = dbutils.fs.ls(adls_path)
   for file in all_files:
-    print(file.path)
-    deltaFromFile(file.path)
+    # only run for CSV files (i.e. not directories)
+    if file.size > 0 and len(file.name.split('.')) == 2:
+      print(file.path)
+      deltaFromFile(adls_path, file.path, file.name)
 
 # COMMAND ----------
 
