@@ -58,27 +58,29 @@ on p.team_id = t.team_id
 order by p.RUSHING_YARDS desc
 ```
 
-For the 2014 NFL season, for the 49ers, Frank Gore and Colin Kaepernick were racking up the rushing yards.  
-**Top 20**  
-| - | PLAYER_NAME | FIELD_POSITION | TEAM_SHORT | RUSHING_YARDS | PASSING_YARDS |
+For the 2014 NFL season, for the 49ers, Frank Gore and Colin Kaepernick were racking up the rushing yards.
+
+**Top 20**
+
+| -   | PLAYER_NAME      | FIELD_POSITION | TEAM_SHORT | RUSHING_YARDS | PASSING_YARDS |
 | --- | ---------------- | -------------- | ---------- | ------------- | ------------- |
-| 1 | Frank Gore | RB | SF | 158 | 0 |
-| 2 | Colin Kaepernick | QB | SF | 151 | 114 |
-| 3 | Frank Gore | RB | SF | 144 | 0 |
-| 4 | Frank Gore | RB | SF | 119 | 0 |
-| 5 | Frank Gore | RB | SF | 107 | 0 |
-| 6 | Frank Gore | RB | SF | 95 | 0 |
-| 7 | Frank Gore | RB | SF | 81 | 0 |
-| 8 | Frank Gore | RB | SF | 66 | 0 |
-| 9 | Colin Kaepernick | QB | SF | 64 | 248 |
-| 10 | Frank Gore | RB | SF | 63 | 0 |
-| 11 | Colin Kaepernick | QB | SF | 63 | 204 |
-| 12 | Frank Gore | RB | SF | 63 | 0 |
-| 13 | Colin Kaepernick | QB | SF | 58 | 218 |
-| 14 | Carlos Hyde | RB | SF | 55 | 0 |
-| 15 | Colin Kaepernick | QB | SF | 54 | 245 |
-| 16 | Carlos Hyde | RB | SF | 50 | 0 |
-| 17 | Frank Gore | RB | SF | 49 | 0 |
-| 18 | Colin Kaepernick | QB | SF | 46 | 141 |
-| 19 | Carlos Hyde | RB | SF | 43 | 0 |
-| 20 | Frank Gore | RB | SF | 38 | 0 |
+| 1   | Frank Gore       | RB             | SF         | 158           | 0             |
+| 2   | Colin Kaepernick | QB             | SF         | 151           | 114           |
+| 3   | Frank Gore       | RB             | SF         | 144           | 0             |
+| 4   | Frank Gore       | RB             | SF         | 119           | 0             |
+| 5   | Frank Gore       | RB             | SF         | 107           | 0             |
+| 6   | Frank Gore       | RB             | SF         | 95            | 0             |
+| 7   | Frank Gore       | RB             | SF         | 81            | 0             |
+| 8   | Frank Gore       | RB             | SF         | 66            | 0             |
+| 9   | Colin Kaepernick | QB             | SF         | 64            | 248           |
+| 10  | Frank Gore       | RB             | SF         | 63            | 0             |
+| 11  | Colin Kaepernick | QB             | SF         | 63            | 204           |
+| 12  | Frank Gore       | RB             | SF         | 63            | 0             |
+| 13  | Colin Kaepernick | QB             | SF         | 58            | 218           |
+| 14  | Carlos Hyde      | RB             | SF         | 55            | 0             |
+| 15  | Colin Kaepernick | QB             | SF         | 54            | 245           |
+| 16  | Carlos Hyde      | RB             | SF         | 50            | 0             |
+| 17  | Frank Gore       | RB             | SF         | 49            | 0             |
+| 18  | Colin Kaepernick | QB             | SF         | 46            | 141           |
+| 19  | Carlos Hyde      | RB             | SF         | 43            | 0             |
+| 20  | Frank Gore       | RB             | SF         | 38            | 0             |
