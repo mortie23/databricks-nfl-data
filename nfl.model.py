@@ -7,6 +7,11 @@
 
 # COMMAND ----------
 
+# MAGIC %pip install pyspark_dist_explore
+# MAGIC %pip install mlflow
+
+# COMMAND ----------
+
 # trying to embbed image into markdown from within repo
 # ![Playoffs](/Workspace/Repos/dev/databricks-nfl-data/img/nfl-playoffs-2014.png)
 
@@ -77,10 +82,6 @@ df = df.select("TOTAL_FIRST_DOWNS", "PASSING_FIRST_DOWNS","YARDS_PER_PLAY","FUMB
 
 # COMMAND ----------
 
-!pip install pyspark_dist_explore
-
-# COMMAND ----------
-
 ## to plot stuff using Spark needed to install pyspark_dist_explore
 ## added the pip install the packageInstall_zakaria init script as I still haven't figured out how to get to the internet from a cluster with process isolation
 from pyspark_dist_explore import hist
@@ -113,32 +114,68 @@ ax[1,1].legend()
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC Define the machine learning pipeline
+# MAGIC The machine learning pipeline tracked and registered using MLFlow
 
 # COMMAND ----------
 
+import mlflow
 from pyspark.ml import Pipeline
 from pyspark.ml.feature import VectorAssembler
 from pyspark.ml.regression import DecisionTreeRegressor
 from pyspark.ml.tuning import ParamGridBuilder, CrossValidator
 from pyspark.ml.evaluation import RegressionEvaluator
 
-inputCols = ["TOTAL_FIRST_DOWNS", "PASSING_FIRST_DOWNS","YARDS_PER_PLAY","FUMBLES","TOTAL_YARDS","INTERCEPTIONS","PUNTS"]
-va = VectorAssembler(inputCols=inputCols,outputCol="features")
-dt = DecisionTreeRegressor(labelCol="WIN_LOSS_BINARY", featuresCol="features", maxDepth=4)
-evaluator = RegressionEvaluator(metricName = "rmse", labelCol="WIN_LOSS_BINARY")
-grid = ParamGridBuilder().addGrid(dt.maxDepth, [3, 5, 7, 10]).build()
-cv = CrossValidator(estimator=dt, estimatorParamMaps=grid, evaluator=evaluator, numFolds = 10)
-pipeline = Pipeline(stages=[va, dt])
+mlflow.sklearn.autolog()
+
+def trainModel():
+  '''
+    Train a Descision tree model
+    Return:
+      run_id: an UUID representing the MLFLow model run
+  '''
+  with mlflow.start_run():
+    # The input features
+    inputCols = ["TOTAL_FIRST_DOWNS", "PASSING_FIRST_DOWNS","YARDS_PER_PLAY","FUMBLES","TOTAL_YARDS","INTERCEPTIONS","PUNTS"]
+    va = VectorAssembler(inputCols=inputCols,outputCol="features")
+    # Define the Decision tree regressor
+    dt = DecisionTreeRegressor(labelCol="WIN_LOSS_BINARY", featuresCol="features", maxDepth=4)
+    evaluator = RegressionEvaluator(metricName = "rmse", labelCol="WIN_LOSS_BINARY")
+
+    grid = ParamGridBuilder().addGrid(dt.maxDepth, [3, 5, 7, 10]).build()
+    cv = CrossValidator(estimator=dt, estimatorParamMaps=grid, evaluator=evaluator, numFolds = 10)
+    pipeline = Pipeline(stages=[va, dt])
+    
+    # Now call fit to train the model and then use MLFlow to log the model
+    model = pipeline.fit(df)
+    mlflow.spark.log_model(spark_model=model, artifact_path="model")
+    
+    # Log the RMSE to MLFlow
+    predictions = model.transform(df)
+    rmse = evaluator.evaluate(predictions, {evaluator.metricName: "rmse"})
+    mlflow.log_metric("rmse", rmse) 
+    
+    # Return the run
+    run_id = mlflow.active_run().info.run_id
+    return run_id
+  
+run_id = trainModel()
+
 
 # COMMAND ----------
 
-# MAGIC %md
-# MAGIC Now call `fit` to build the model.
+# Register the model
+model_name = "nfl-decisiontree"
+artifact_path = "model"
+model_uri = f"runs:/{run_id}/{artifact_path}"
+ 
+model_details = mlflow.register_model(model_uri=model_uri, name=model_name)
 
 # COMMAND ----------
 
-model = pipeline.fit(df)
+# Get the model from the registry
+model = mlflow.spark.load_model(
+    model_uri=f"models:/nfl-decisiontree/{model_details.version}"
+)
 
 # COMMAND ----------
 
@@ -157,6 +194,10 @@ df.schema.fields
 
 # COMMAND ----------
 
+df
+
+# COMMAND ----------
+
 predictions = model.transform(df)
 display(predictions)
 
@@ -168,13 +209,8 @@ display(predictions)
 
 # COMMAND ----------
 
-from pyspark.ml.evaluation import RegressionEvaluator
-evaluator.evaluate(predictions, {evaluator.metricName: "rmse"})
-
-# COMMAND ----------
-
 # MAGIC %md
-# MAGIC Save the model.
+# MAGIC Save the model to a file in ADLS if you want
 
 # COMMAND ----------
 
