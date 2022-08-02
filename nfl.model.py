@@ -4,8 +4,21 @@
 # MAGIC Lets look at the average points scored by team per game
 # MAGIC 
 # MAGIC ## NFL 2014 season playoffs
-# MAGIC 
-# MAGIC ![test](/files/git/nfl_playoffs_2014.png)
+
+# COMMAND ----------
+
+# trying to embbed image into markdown from within repo
+# ![Playoffs](/Workspace/Repos/dev/databricks-nfl-data/img/nfl-playoffs-2014.png)
+
+# COMMAND ----------
+
+# Print the path
+import sys
+import os
+# print("\n".join(sys.path))
+# add path for repo
+# sys.path.append(os.path.abspath('/Workspace/Repos/dev/databricks-nfl-data'))
+# ls /Workspace/Repos/dev/databricks-nfl-data/img/nfl-playoffs-2014.png
 
 # COMMAND ----------
 
@@ -17,8 +30,8 @@
 # MAGIC   , tl.division
 # MAGIC   , tl.team_long
 # MAGIC from
-# MAGIC   nfl.delta_game_stats gs
-# MAGIC   inner join nfl.delta_team_lookup tl
+# MAGIC   nfl.game_stats gs
+# MAGIC   inner join nfl.team_lookup tl
 # MAGIC on gs.team_id=tl.team_id
 
 # COMMAND ----------
@@ -38,7 +51,7 @@ game_stats = spark.sql("""
 select
   *
 from
-  nfl.delta_game_stats
+  nfl.game_stats
 ;
 """)
 # code the string Win Loss column to binary for target
@@ -61,6 +74,10 @@ df = df.select("TOTAL_FIRST_DOWNS", "PASSING_FIRST_DOWNS","YARDS_PER_PLAY","FUMB
 # MAGIC 
 # MAGIC Note there is a difference between a Spark dataframe and a pandas dataframe. They are not the same and do not work in the same way with the same functions/methods.  
 # MAGIC If you want to leverage the parallel nature of Spark, and you want to leverage Delta Lake on ADLS you need to learn how to harness these technologies.
+
+# COMMAND ----------
+
+!pip install pyspark_dist_explore
 
 # COMMAND ----------
 
@@ -162,7 +179,7 @@ evaluator.evaluate(predictions, {evaluator.metricName: "rmse"})
 # COMMAND ----------
 
 import uuid
-model_save_path = f"/{str(uuid.uuid4())}"
+model_save_path = f"abfss://nfldata@nfl.dfs.core.windows.net/models/{str(uuid.uuid4())}"
 model.write().overwrite().save(model_save_path)
 
 # COMMAND ----------
