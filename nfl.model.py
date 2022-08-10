@@ -9,6 +9,37 @@
 
 # MAGIC %pip install pyspark_dist_explore
 # MAGIC %pip install mlflow
+# MAGIC %pip install azureml-mlflow
+# MAGIC %pip install azure-ai-ml
+# MAGIC %pip install azure-identity
+
+# COMMAND ----------
+
+# this was an attempt to use the DefaultAzureCredential() and then get an MLFlow tracking URI
+import os
+from azure.ai.ml import MLClient
+import azure.identity as azurei
+import mlflow
+
+# set environment variables for the service principal authentication of DefaultAzureCredential()
+os.environ["AZURE_CLIENT_ID"] = dbutils.secrets.get(scope = "azureml", key = "clientId")
+os.environ["AZURE_TENANT_ID"] = dbutils.secrets.get(scope = "azureml", key = "tenantId")
+os.environ["AZURE_CLIENT_SECRET"] = dbutils.secrets.get(scope = "azureml", key = "clientSecret")
+
+# Enter details of your AzureML workspace
+subscription_id = dbutils.secrets.get(scope = "azureml", key = "subscriptionid")
+resource_group = dbutils.secrets.get(scope = "azureml", key = "resourcegroup")
+workspace_name = dbutils.secrets.get(scope = "azureml", key = "workspacename")
+
+ml_client = MLClient(
+    credential=azurei.DefaultAzureCredential(logging_enable=True),
+    subscription_id=subscription_id, 
+    resource_group_name=resource_group
+)
+
+azureml_mlflow_uri = ml_client.workspaces.get(workspace_name).mlflow_tracking_uri
+mlflow.set_tracking_uri(azureml_mlflow_uri)
+print(azureml_mlflow_uri)
 
 # COMMAND ----------
 
@@ -125,7 +156,9 @@ from pyspark.ml.regression import DecisionTreeRegressor
 from pyspark.ml.tuning import ParamGridBuilder, CrossValidator
 from pyspark.ml.evaluation import RegressionEvaluator
 
-mlflow.sklearn.autolog()
+mlflow.set_experiment(experiment_name="nfl")
+
+mlflow.spark.autolog()
 
 def trainModel():
   '''
